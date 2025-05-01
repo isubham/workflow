@@ -9,4 +9,12 @@ An app which lets you
 
 2. start it 
 3. stop it
+4. list workflows
 
+
+## Usage 
+
+clone this repo and run **npm link** 
+
+open any other terminal and use 
+workflow command
