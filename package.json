@@ -1,0 +1,15 @@
+{
+  "name": "commands",
+  "version": "1.0.0",
+  "description": "",
+  "main": "start-coding-session.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "start-coding": "./start-coding.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
