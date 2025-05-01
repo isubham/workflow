@@ -1,6 +1,9 @@
 
 # Workflow
 
+![image](https://github.com/user-attachments/assets/b7fa7ef4-6b45-40d6-abc4-aaf25059e9b4)
+
+
 
 An app which lets you 
 1. configure your workflow 
