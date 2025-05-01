@@ -8,9 +8,15 @@
   },
   "type": "module",
   "bin": {
-    "start-coding": "./start-coding.js"
+    "workflow": "./bin/index.js"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@inquirer/select": "^4.2.0",
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0",
+    "sqlite3": "^5.1.7"
+  }
 }

@@ -1,5 +1,6 @@
 
-const workFlow = {
+const workFlowEpam = {
+  name: "epam",
   apps: [
     {
       nickName: "personal browser",
@@ -47,5 +48,5 @@ const workFlow = {
 };
 
 
-export { workFlow };
+export { workFlowEpam };
 
