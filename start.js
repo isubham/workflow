@@ -22,7 +22,7 @@ function startWorkFlow(workFlow) {
       console.log(`opening ${app.name} for location ${location.name}`)
 
       // 
-      exec(`open -a "${app.name}" ${location.location}`, (error) => {
+      exec(`open -a "${app.name}" "${location.location}"`, (error) => {
         if (error) {
           console.error(`Error opening ${app} ${location}: ${error.message}`);
         } else {

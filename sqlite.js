@@ -1,68 +1,175 @@
 
 import sqlite3 from 'sqlite3';
+import { open } from 'sqlite';
 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { exec } from 'node:child_process';
+
+import { access } from 'node:fs/promises';
+import { constants } from 'node:fs';
+import chalk from 'chalk';
+
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 
-function createDbConnection() {
-  const filepath = __dirname + '/workflow.db';
-  console.log(filepath);
-  const db = new sqlite3.Database(filepath, (error) => {
-  if (error) {
-    return console.error(error.message);
-  }
-  });
-  console.log("Connection with SQLite has been established");
+const filepath = __dirname + '/workflow.db';
+
+
+async function createDbConnection() {
+
+  const db = await open(
+    {
+      filename: filepath,
+      driver: sqlite3.Database
+    }
+  )
   return db;
 }
 
-const insertSession = async (name) => {
+class Setup {
 
-  const db = createDbConnection();
-
-  db.run(`INSERT into w_sessions (name, start_time) values (?, ?)`,
-    [name, (new Date()).toLocaleString()])
-
-  db.close();
-}
-
-const deleteSession = async (name) => {
-
-  const db = createDbConnection();
-
-  db.run(`DELETE from w_sessions where name = ?`,
-    [name])
-
-  db.close();
-
-}
-
-const getWorkFlowSessions = async () => {
-
-  const db = createDbConnection();
-
-  db.all(`SELECT * from w_sessions `, [], (err, rows) => {
-    if (err) {
-
-      return console.error(err.message);
-
+  async init() {
+    await this.createDb();
+    await this.createTables();  
+  }
+  
+  // just creates a file for use in sqlite and its tables
+  async createDb() {
+    try {
+      // check if file already exists
+      await access(filepath, constants.F_OK);
+      console.log('database already exits');
+    } catch (error) {
+      console.log('creating fresh database');
+      exec('touch ${filePath}');
     }
 
-    rows.forEach(row => {
-      console.log(row);
-    });
+  }
 
-  })
 
-  db.close();
+  async createTables() {
+
+    const db = await createDbConnection();
+
+    console.log('creating tables');
+
+    await db.exec(`CREATE TABLE IF NOT EXISTS w_sessions 
+      (
+        id INTEGER PRIMARY_KEY AUTO_INCREMENT,
+        name TEXT,
+        start_time TEXT,
+        end_timeTEXT
+      )
+      `)
+
+  }
+
+  async clean () {
+    exec(`rm  ${filepath}`);
+    await this.init();
+  }
 
 
 }
 
-export { insertSession, deleteSession, getWorkFlowSessions  };
+class Session {
+
+  insert = async (name) => {
+
+    const db = await createDbConnection();
+
+    const result = db.run(`INSERT into w_sessions (name, start_time) values (?, ?)`,
+      [name, (new Date()).toLocaleString()])
+
+    await db.close();
+    return result;
+  }
+
+
+
+  delete = async (name) => {
+
+    const db = await createDbConnection();
+
+    const results = db.run(`DELETE from w_sessions where name = ?`,
+      [name])
+
+    await db.close();
+    
+    return results;
+
+  }
+
+
+  getAll = async () => {
+
+    try {
+      const db = await createDbConnection();
+      const workflowSessions = await db.all(`SELECT * from w_sessions`);
+      await db.close();
+      return workflowSessions;
+    } catch(error) {
+      console.log(chalk.red('error getting active sessions'));
+      return [];
+    }
+
+  }
+
+}
+
+
+class WorkFlow {
+
+  insert = async (name) => {
+
+    const db = await createDbConnection();
+
+    const result = db.run(`INSERT into w_sessions (name, start_time) values (?, ?)`,
+      [name, (new Date()).toLocaleString()])
+
+    await db.close();
+    return result;
+  }
+
+
+
+  delete = async (name) => {
+
+    const db = await createDbConnection();
+
+    const results = db.run(`DELETE from w_sessions where name = ?`,
+      [name])
+
+    await db.close();
+    
+    return results;
+
+  }
+
+
+  getAll = async () => {
+
+    const db = await createDbConnection();
+
+    const workflowSessions = await db.all(`SELECT * from w_sessions`);
+
+    await db.close();
+
+    return workflowSessions;
+
+  }
+
+}
+
+const session = new Session();
+const workflow = new WorkFlow();
+const setup = new Setup();
+
+
+export {workflow, session, setup} 
 
 

@@ -10,7 +10,7 @@ workflow ls
 */
 
 import { program } from "commander";
-import select, { Separator } from "@inquirer/select";
+import select  from "@inquirer/select";
 import chalk from "chalk";
 
 import { workFlowPlabs } from "../configs/config-pl.js";
@@ -18,99 +18,132 @@ import { workFlowEpam } from "../configs/config-epam.js";
 
 import { startWorkFlow } from "../start.js";
 import { stopWorkFlow } from "../stop.js";
-import { insertSession, deleteSession, getWorkFlowSessions } from "../sqlite.js";
+import { session, setup } from "../sqlite.js";
+import { mineWorkflowApp } from "../configs/config-workflow.js";
 
 
 program
   .version("1.0.0")
   .description("workflow");
 
+const commands = {
+  start: 'start',
+  stop: 'stop',
+  ls: 'ls',
+  setup: 'setup',
+  clean: 'clean',
+}
 
-const workflows = [
-  { id: 'epam', workflow: workFlowEpam },
-  { id: 'plabs', workflow: workFlowPlabs },
-]
+
 
 program
-  .command('ls')
-  .description('get running workflows')
-  .action(() => {
+  .command(commands.setup)
+  .description('setup workflow databases, dependencies')
+  .action(async () => {
+    await setup.init()
+  })
 
-    getWorkFlowSessions();
+program
+  .command(commands.clean)
+  .description('fresh start workflow')
+  .action(async () => {
+    await setup.clean()
+  })
+
+
+// list active sessions
+program
+  .command(commands.stop)
+  .description('stop running workflows')
+  .action(async () => {
+
+    const workflowSessions = await session.getAll();
+
+    const choices = workflowSessions.map(workflowSession => {
+
+
+      const diffMs = new Date(new Date().toLocaleString()) - new Date(workflowSession.start_time);
+
+      const diffSec = diffMs / 1000;
+      const diffMin = Math.round(diffSec / 60, 1);
+
+      return {
+
+        name: `${workflowSession.name}  | started on ${workflowSession.start_time} (${diffMin} mins ago)`,
+        value: `${workflowSession.name}`
+      }
+    });
+
+    if (choices.length > 0) {
+
+      select({
+        message: 'your active workflow: ',
+        choices
+      }).then(async (name) => {
+
+
+        try {
+
+          const workflow = workflowsConfigs.find(e => e.id === name).workflow;
+        
+          stopWorkFlow(workflow);
+        
+          await session.delete(name);
+
+        } catch (error) {
+
+          console.log(chalk.red(`error in ending workflow ${name}!`));
+
+        }  
+        finally {
+          console.log(chalk.red(`workflow ${name} ended !`));
+        }
+
+
+      });
+       
+    }
 
   });
 
       
+
+const workflowsConfigs = [
+  { id: 'epam', workflow: workFlowEpam },
+  { id: 'plabs', workflow: workFlowPlabs },
+  { id: 'workflowApp', workflow: mineWorkflowApp },
+]
+
+const workFlows = [
+    {
+      name: "epam",
+      value: "epam",
+    },
+    {
+      name: "plabs",
+      value: "plabs",
+    },
+    {
+      name: "workflowApp",
+      value: "workflowApp",
+    },
+
+];
+
 // start session
 program
-  .command('start')
+  .command(commands.start)
   .description('stars a workflow')
   .action(() => {
   select({
     message: 'your workflow: ',
-      choices: [
-        {
-          name: "epam",
-          value: "epam",
-        },
-        {
-          name: "plabs",
-          value: "plabs",
-        },
-        {
-          name: "mine",
-          value: "mine",
-        },
-
-    ]})
+    choices: workFlows
+  })
     .then((name) => {
       console.log(chalk.green(`workflow ${name} starting !`));
-     
-      const workflow = workflows.find(e => e.id === name).workflow;
-      
-
+      const workflow = workflowsConfigs.find(e => e.id === name).workflow;
       startWorkFlow(workflow);
-
-      insertSession(name);
-
-      console.log(`workflow ${name} started`)
-
-    });
-});
-
-
-// end session
-// start session
-program
-  .command('end')
-  .description('end a workflow')
-  .action(() => {
-  select({
-    message: 'your workflow: ',
-      choices: [
-        {
-          name: "epam",
-          value: "epam",
-        },
-        {
-          name: "plabs",
-          value: "plabs",
-        },
-        {
-          name: "mine",
-          value: "mine",
-        },
-
-    ]})
-    .then((name) => {
-      console.log(chalk.green(`workflow ${name} starting !`));
-     
-      const workflow = workflows.find(e => e.id === name).workflow;
-
-      stopWorkFlow(workflow);
-
-      deleteSession(name);
-
+      session.insert(name);
       console.log(`workflow ${name} started`)
 
     });

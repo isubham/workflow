@@ -2,7 +2,7 @@
   "name": "commands",
   "version": "1.0.0",
   "description": "",
-  "main": "start-coding-session.js",
+  "main": "bin/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -17,6 +17,7 @@
     "@inquirer/select": "^4.2.0",
     "chalk": "^5.4.1",
     "commander": "^13.1.0",
+    "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7"
   }
 }

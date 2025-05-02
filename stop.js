@@ -18,9 +18,9 @@ function stopWorkFlow(workFlow) {
 
       exec(`osascript -e 'tell application "${app.name}" to quit'`, (error) => {
         if (error) {
-          console.error(`Error quitting Brave Browser: ${error.message}`);
+          console.error(`Error quitting ${app.name} ${error.message}`);
         } else {
-          console.log('Brave Browser quit safely.');
+          console.log(`${app.name} quit safely.`);
         }
       });
 
