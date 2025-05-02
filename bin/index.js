@@ -10,7 +10,10 @@ workflow ls
 */
 
 import { program } from "commander";
+
 import select  from "@inquirer/select";
+import  input  from '@inquirer/input';
+
 import chalk from "chalk";
 
 import { workFlowPlabs } from "../configs/config-pl.js";
@@ -18,7 +21,7 @@ import { workFlowEpam } from "../configs/config-epam.js";
 
 import { startWorkFlow } from "../start.js";
 import { stopWorkFlow } from "../stop.js";
-import { session, setup } from "../sqlite.js";
+import { session, setup, workflow, workflowContext } from "../sqlite.js";
 import { mineWorkflowApp } from "../configs/config-workflow.js";
 
 
@@ -28,13 +31,90 @@ program
 
 const commands = {
   start: 'start',
+  list: 'list',
   stop: 'stop',
   ls: 'ls',
   setup: 'setup',
   clean: 'clean',
+  create: 'create',
 }
 
 
+program
+  .command(commands.list)
+  .description('show all workflow')
+  .action(async() => {
+
+    const workflows = await workflow.getAll();
+
+    const viewData = [];
+
+    workflows.forEach(workflow => {
+      viewData.push({
+        name: workflow.name,
+        value: workflow.name,
+        id: workflow.id
+      });
+    });
+
+    console.table(viewData);
+  })
+
+
+program
+  .command(commands.create)
+  .description('create new workflows')
+  .action(async() => {
+    
+    const workflowName = await input({ message: 'Enter workflow name' });
+
+    const workflowCreated = await workflow.insert(workflowName);
+
+    const workflowId = workflowCreated.lastID
+
+    await createWorkFlowContext(workflowId)
+
+    await displayWorkFlow(workflowId);
+    
+  })
+
+async function displayWorkFlow(workflowId) {
+
+  const viewData = [];
+  // show workflow 
+  const created = await workflow.get(workflowId)
+  viewData.push([{ name: created.name, location: '' }]);
+
+  // show workflow context
+  const workflowContexts = await workflowContext.getAll(workflowId);
+
+  workflowContexts.forEach(workflowContext => {
+  
+    viewData.push([{ name: workflowContext.app, location:  workflowContext.location}]);
+
+  });
+
+  console.table(chalk.cyan(viewData));
+
+}
+
+
+async function createWorkFlowContext(workflowId) {
+
+  const app = await input({ message: 'Enter app name' });
+  const location = await input({ message: 'Enter location' });
+  await workflowContext.insert(app, location, workflowId)
+
+
+  const addMore = await input({ message: 'add more apps [y/n]?' });
+
+  if (addMore == 'y') {
+    await createWorkFlowContext(workflowId)
+  } else {
+    return;
+  }
+
+}
 
 program
   .command(commands.setup)
@@ -149,7 +229,7 @@ program
     });
 });
 
-
+ 
 
 program.parse(process.argv);
 

@@ -19,7 +19,7 @@ const __dirname = path.dirname(__filename);
 const filepath = __dirname + '/workflow.db';
 
 
-async function createDbConnection() {
+export async function createDbConnection() {
 
   const db = await open(
     {
@@ -66,11 +66,30 @@ class Setup {
       )
       `)
 
+    await db.exec(`
+    CREATE TABLE IF NOT EXISTS workflows (
+      id INTEGER AUTO_INCREMENT PRIMARY_KEY, 
+      name TEXT,
+      created_on TEXT,
+      updated_on TEXT
+      )`
+    );
+
+
+    await db.exec(`
+    CREATE TABLE IF NOT EXISTS workflow_context (
+      id INTEGER AUTO INCREMENT PRIMARY KEY,
+      app TEXT,
+      path TEXT,
+      workflow_id INTEGER,
+      created_on TEXT,
+      updated_on TEXT
+    )`
+    );
   }
 
   async clean () {
     exec(`rm  ${filepath}`);
-    await this.init();
   }
 
 
@@ -128,7 +147,7 @@ class WorkFlow {
 
     const db = await createDbConnection();
 
-    const result = db.run(`INSERT into w_sessions (name, start_time) values (?, ?)`,
+    const result = db.run(`INSERT into workflows (name, created_on) values (?, ?)`,
       [name, (new Date()).toLocaleString()])
 
     await db.close();
@@ -136,12 +155,25 @@ class WorkFlow {
   }
 
 
+  get = async (id) => {
 
+    const db = await createDbConnection();
+
+    const result = db.run(`SELECT * FROM workflows WHERE id = ?`,
+      [id])
+
+    await db.close();
+    return result;
+  }
+
+
+
+  /*
   delete = async (name) => {
 
     const db = await createDbConnection();
 
-    const results = db.run(`DELETE from w_sessions where name = ?`,
+    const results = db.run(`DELETE from workflows where name = ?`,
       [name])
 
     await db.close();
@@ -149,13 +181,14 @@ class WorkFlow {
     return results;
 
   }
+  */
 
 
   getAll = async () => {
 
     const db = await createDbConnection();
 
-    const workflowSessions = await db.all(`SELECT * from w_sessions`);
+    const workflowSessions = await db.all(`SELECT * from workflows`);
 
     await db.close();
 
@@ -165,11 +198,69 @@ class WorkFlow {
 
 }
 
+const schema = {
+  name: "mine-workflow-app",     
+  locations: [
+    { app: "Brave Browser", path: 'https://www.youtube.com/watch?v=lrfcxQguHVk'},
+    { app: "Brave Browser", path: 'https://news.ycombinator.com/'},
+    { app: "Brave Browser", path: 'https://github.com/SBoudrias/Inquirer.js/tree/main/packages/select'},
+    { app: "Visual Studio Code", path: '$HOME/workflow/' },
+    { app: "draw.io", path: '$HOME/workflow/workflow.drawio'},
+  ],
+};
+
+
+class WorkFlowContext {
+
+  insert = async (app, path, workflowId) => {
+
+    const db = await createDbConnection();
+
+    const result = db.run(`INSERT into workflow_context (app, path, workflow_id, created_on) values (?, ?, ?, ?)`,
+      [app, path, workflowId, (new Date()).toLocaleString()])
+
+    await db.close();
+    return result;
+  }
+
+
+
+  delete = async (id) => {
+
+    const db = await createDbConnection();
+
+    const results = db.run(`DELETE from workflow_context  where id = ?`,
+      [id])
+
+    await db.close();
+    
+    return results;
+
+  }
+
+
+  getAll = async (workflowId) => {
+
+    const db = await createDbConnection();
+
+    const workflowSessions = await db.run(`SELECT * from workflow_context where workflow_id = ?`,
+    [workflowId]);
+
+    await db.close();
+
+    return workflowSessions;
+
+  }
+  
+}
+
 const session = new Session();
-const workflow = new WorkFlow();
 const setup = new Setup();
+const workflow = new WorkFlow();
+const workflowContext = new WorkFlowContext();
 
 
-export {workflow, session, setup} 
+
+export {workflow, workflowContext, session, setup} 
 
 
