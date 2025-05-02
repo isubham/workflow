@@ -28,3 +28,9 @@ workflow command
 1. brave keep opening duplicate tabs
 
 <img width="1080" alt="image" src="https://github.com/user-attachments/assets/f346f553-53bc-4f35-8702-c827370bef7b" />
+
+
+2. VS Code remembers last folders it opened
+
+<img width="1080" alt="image" src="https://github.com/user-attachments/assets/20491b82-002a-4c5a-a665-d9703c67c11a" />
+
