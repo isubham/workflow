@@ -21,3 +21,10 @@ clone this repo and run **npm link**
 
 open any other terminal and use 
 workflow command
+
+
+# Known Issues
+
+1. brave keep opening duplicate tabs
+
+<img width="1080" alt="image" src="https://github.com/user-attachments/assets/f346f553-53bc-4f35-8702-c827370bef7b" />
