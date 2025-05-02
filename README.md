@@ -1,6 +1,9 @@
 
 # Workflow
 
+![image](https://github.com/user-attachments/assets/b7fa7ef4-6b45-40d6-abc4-aaf25059e9b4)
+
+
 
 An app which lets you 
 1. configure your workflow 
@@ -18,3 +21,16 @@ clone this repo and run **npm link**
 
 open any other terminal and use 
 workflow command
+
+
+# Known Issues
+
+1. brave keep opening duplicate tabs
+
+<img width="1080" alt="image" src="https://github.com/user-attachments/assets/f346f553-53bc-4f35-8702-c827370bef7b" />
+
+
+2. VS Code remembers last folders it opened
+
+<img width="1080" alt="image" src="https://github.com/user-attachments/assets/20491b82-002a-4c5a-a665-d9703c67c11a" />
+
